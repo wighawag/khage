@@ -1,0 +1,11 @@
+{
+	"name":"khage",
+	"license":"MIT",
+	"tags":["Kha","graphic","shader"],
+	"description":"KHA Graphical Extension",
+	"contributors":["wighawag"],
+	"releasenote":"first release",
+	"version":"0.0.1",
+	"url":"https://github.com/wighawag/khage",
+	"classPath":"Sources"
+}
