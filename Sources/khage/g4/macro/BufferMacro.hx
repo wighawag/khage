@@ -86,6 +86,12 @@ class BufferMacro{
             }
         }
 
+        attributes.sort(function(a,b){
+					if (a.name < b.name) return -1;
+    			if (a.name > b.name) return 1;
+    			return 0;
+				});
+
 
         var bufferType = getBufferClassFromAttributes(attributes);
 
@@ -249,8 +255,8 @@ class BufferMacro{
 
 
         constructorBody.append(macro {
-          vertexBuffer = new kha.graphics4.VertexBuffer(65535,structure,usage);
-          indexBuffer = new kha.graphics4.IndexBuffer(65535,usage);
+          vertexBuffer = new kha.graphics4.VertexBuffer(numVertices * $v{totalStride},structure,usage);
+          indexBuffer = new kha.graphics4.IndexBuffer(numIndices,usage);
         });
         fields.push({
               name: "new",
@@ -258,6 +264,14 @@ class BufferMacro{
               access: [APublic,AInline],
               kind: FFun({
                 args:[{
+                    name:"numVertices",
+                    type: macro :Int
+                },
+                {
+                    name:"numIndices",
+                    type: macro :Int
+                },
+                {
                   name:"usage",
                   type: macro : kha.graphics4.Usage
                 }],
