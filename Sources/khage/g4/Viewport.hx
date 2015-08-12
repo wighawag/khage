@@ -33,10 +33,10 @@ class Viewport{
 
 	var _option : Option;
 
-	public var viewportX(default,null) : Int = 0;
-	public var viewportY(default,null) : Int = 0;
-	public var viewportWidth(default,null) : Int = 0;
-	public var viewportHeight(default,null) : Int = 0;
+	public var x(default,null) : Int = 0;
+	public var y(default,null) : Int = 0;
+	public var width(default,null) : Int = 0;
+	public var height(default,null) : Int = 0;
 
 	var lastFrameWidth : Int;
 	var lastFrameHeight : Int;
@@ -67,108 +67,108 @@ class Viewport{
 	}
 
 	inline function setViewportAutomatically(frameBufferWidth,frameBufferHeight,g4 : kha.graphics4.Graphics){
-		var width : Float = frameBufferWidth;
-		var height : Float = frameBufferHeight;
+		var availableWidth : Float = frameBufferWidth;
+		var availableHeight : Float = frameBufferHeight;
 		switch(_option.type){
 			case Fill :
-				width = frameBufferWidth;
-				height = frameBufferHeight;
+				availableWidth = frameBufferWidth;
+				availableHeight = frameBufferHeight;
 			case FillUpToRatios(minRatio, maxRatio):
 				if (frameBufferWidth / frameBufferHeight > maxRatio){
-					width = frameBufferHeight * maxRatio;
-					height = frameBufferHeight;
+					availableWidth = frameBufferHeight * maxRatio;
+					availableHeight = frameBufferHeight;
 				}else if(frameBufferWidth / frameBufferHeight < minRatio){
-					width = frameBufferHeight; //??
-					height = frameBufferHeight * minRatio;
+					availableWidth = frameBufferHeight; //??
+					availableHeight = frameBufferHeight * minRatio;
 				}else{
-					width = frameBufferWidth;
-					height = frameBufferHeight;
+					availableWidth = frameBufferWidth;
+					availableHeight = frameBufferHeight;
 				}
 
 			case Fixed(w,h) :
-				width = w;
-				height = h;
+				availableWidth = w;
+				availableHeight = h;
 			case KeepRatioUsingBorder(w,h):
-				var widthRatio = width/w;
-				var heightRatio = height/h;
+				var widthRatio = availableWidth/w;
+				var heightRatio = availableHeight/h;
 				if(widthRatio > heightRatio){
-					width = w * heightRatio;
+					availableWidth = w * heightRatio;
 				}else{
-					height = h * widthRatio;
+					availableHeight = h * widthRatio;
 				}
 			case KeepRatioUsingBorderWithoutScalingUp(w,h):
-				var widthRatio = width/w;
-				var heightRatio = height/h;
+				var widthRatio = availableWidth/w;
+				var heightRatio = availableHeight/h;
 				if(widthRatio > 1 || heightRatio > 1){
-					width = w;
-					height = h;
+					availableWidth = w;
+					availableHeight = h;
 				}else if(widthRatio > heightRatio){
-					width = w * heightRatio;
+					availableWidth = w * heightRatio;
 				}else{
-					height = h * widthRatio;
+					availableHeight = h * widthRatio;
 				}
 			case KeepRatioUsingCropping(w,h):
-				var widthRatio = width/w;
-				var heightRatio = height/h;
+				var widthRatio = availableWidth/w;
+				var heightRatio = availableHeight/h;
 				if(widthRatio < heightRatio){
-					width = w * heightRatio;
+					availableWidth = w * heightRatio;
 				}else{
-					height = h * widthRatio;
+					availableHeight = h * widthRatio;
 				}
 			case KeepRatioUsingCroppingWithoutScalingUp(w,h):
-				var widthRatio = width/w;
-				var heightRatio = height/h;
+				var widthRatio = availableWidth/w;
+				var heightRatio = availableHeight/h;
 				if(widthRatio > 1 || heightRatio > 1){
-					width = w;
-					height = h;
+					availableWidth = w;
+					availableHeight = h;
 				}else if(widthRatio < heightRatio){
-					width = w * heightRatio;
+					availableWidth = w * heightRatio;
 				}else{
-					height = h * widthRatio;
+					availableHeight = h * widthRatio;
 				}
 		}
 		//TODO add option to not scale up?
 
 		//TODO support drawingBufferWidth < windowWidth and drawingBufferHeight < windowHeight
 
-		var x : Float = 0;
-		var y : Float = 0;
+		var tentativeX : Float = 0;
+		var tentativeY : Float = 0;
 		switch(_option.position){
 			case Center :
-				x = (frameBufferWidth - width) / 2;
-				y = (frameBufferHeight - height) / 2;
+				tentativeX = (frameBufferWidth - availableWidth) / 2;
+				tentativeY = (frameBufferHeight - availableHeight) / 2;
 			case TopLeft :
-				y = (frameBufferHeight - height);
+				tentativeY = (frameBufferHeight - availableHeight);
 			case Top :
-				x = (frameBufferWidth - width) / 2;
-				y = (frameBufferHeight - height);
+				tentativeX = (frameBufferWidth - availableWidth) / 2;
+				tentativeY = (frameBufferHeight - availableHeight);
 			case TopRight:
-				x = (frameBufferWidth - width);
-				y = (frameBufferHeight - height);
+				tentativeX = (frameBufferWidth - availableWidth);
+				tentativeY = (frameBufferHeight - availableHeight);
 			case Right:
-				x = (frameBufferWidth - width);
-				y = (frameBufferHeight - height) / 2;
+				tentativeX = (frameBufferWidth - availableWidth);
+				tentativeY = (frameBufferHeight - availableHeight) / 2;
 			case BottomRight:
-				x = (frameBufferWidth - width);
+				tentativeX = (frameBufferWidth - availableWidth);
 			case Bottom:
-				x = (frameBufferWidth - width) / 2;
+				tentativeX = (frameBufferWidth - availableWidth) / 2;
 			case BottomLeft:
 			case Left:
-				y = (frameBufferHeight - height) / 2;
+				tentativeY = (frameBufferHeight - availableHeight) / 2;
 
 		}
 
 
-		if(width != viewportWidth || height != viewportHeight || x != viewportX || y != viewportY){
-			viewportX = Std.int(x);
-			viewportY = Std.int(y);
-			viewportWidth = Std.int(width);
-			viewportHeight = Std.int(height);
+		if(availableWidth != width || availableHeight != height || tentativeX != x || tentativeY != y){
+			x = Std.int(tentativeX);
+			y = Std.int(tentativeY);
+			width = Std.int(availableWidth);
+			height = Std.int(availableHeight);
 
 			//TODO  when kha support viewport
-			//g4.viewport(viewportX, viewportY, viewportWidth, viewportHeight);
+			//g4.viewport(x, y, width, height);
 			//for now:
-			kha.Sys.gl.viewport(viewportX, viewportY, viewportWidth, viewportHeight);
+			kha.Sys.gl.viewport(x, y, width, height);
 		}
 
 	}

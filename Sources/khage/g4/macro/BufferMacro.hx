@@ -76,6 +76,8 @@ class BufferMacro{
                     var abstractType = t.get();
                     if(abstractType.pack.length == 2 && abstractType.pack[0] == "khage" && abstractType.pack[1] == "g4"){
                         attributes.push({name:field.name, type:TPath({name :abstractType.name, pack :abstractType.pack})});
+                    }else if(abstractType.pack.length == 0 && abstractType.name == "Float"){
+                      attributes.push({name:field.name, type:TPath({name :abstractType.name, pack :abstractType.pack})});
                     }else{
                         Context.error("attribute type not supported " + abstractType, pos);
                         return null;
@@ -92,6 +94,8 @@ class BufferMacro{
     			return 0;
 				});
 
+
+        //TODO sort
 
         var bufferType = getBufferClassFromAttributes(attributes);
 

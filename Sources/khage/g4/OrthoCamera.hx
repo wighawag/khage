@@ -1,6 +1,8 @@
 package khage.g4;
 
 import kha.math.Matrix4;
+import kha.math.Vector3;
+import kha.math.Vector4;
 
 typedef OrthoCameraOption = {
 	?scale : Bool
@@ -13,9 +15,9 @@ class OrthoCamera{
 	public function new(width : Float, height : Float, ?option : OrthoCameraOption){
 		_focusWidth = width;
 		_focusHeight = height;
-		_proj = new Matrix4();
-		_view = new Matrix4();
-		viewproj = new Matrix4();
+		_proj = Matrix4.identity();
+		_view = Matrix4.identity();
+		viewproj = Matrix4.identity();
 		var defaultOption : OrthoCameraOption = {
 			scale:true
 		};
@@ -27,34 +29,41 @@ class OrthoCamera{
 		_option =option;
 	}
 
-  public function handleViewport(){
-    //TODO onViewportChanged(x : Int, y : Int, width : Int, height : Int)
+  public function handleViewport(viewport : Viewport){
+		_viewport = viewport;
+		if(_lastViewPortWidth != _viewport.width || _lastViewPortHeight != _viewport.height){
+			_lastViewPortWidth = _viewport.width;
+			_lastViewPortHeight = _viewport.height;
+			onViewportChanged(_viewport.x, _viewport.y, _viewport.width, _viewport.height);
+		}
   }
 
   public function centerOn(x : Float, y : Float){
     //TODO keep in memory (state)
-    _view.identity();
-    _view.scale(_view,_scale,_scale,1);
-    _view.translate(_view, _visibleWidth/2 - x,_visibleHeight/2 - y, 0);
-    viewproj.multiply(_proj, _view);
+    _view = Matrix4.identity();
+    _view = _view.multmat(Matrix4.scale(_scale,_scale,1));
+    _view = _view.multmat(Matrix4.translation(_visibleWidth/2 - x,_visibleHeight/2 - y, 0));
+    viewproj = _proj.multmat(_view);
 
     //TODO limit the side
 
     //TODO support zooming
   }
 
-  public function toBufferCoordinates(vec3 : Vec3, out : Vec3) : Vec3{
-    out = out.transformMat4(vec3, _view);
-    //TODO out.x + _gpu.viewportX;
-    //TODO out.y + _gpu.viewportY;
-    return out;
+  public function toBufferCoordinates(vec3 : Vector3) : Vector3{
+		var vec4 = new Vector4(vec3.x,vec3.y,vec3.z,0);
+		var out = _view.multvec(vec4);
+    out.x + _viewport.x;
+    out.y + _viewport.y;
+    return new Vector3(out.x,out.y,out.z);
   }
 
+	var _viewport : Viewport;
   var _option : OrthoCameraOption;
 	var _scale : Float = 1;
 
 	var _proj : Matrix4;
-	var _view: Mattrix4;
+	var _view: Matrix4;
 
   var _visibleWidth : Float;
 	var _visibleHeight : Float;
@@ -62,12 +71,12 @@ class OrthoCamera{
 	var _focusWidth : Float;
 	var _focusHeight : Float;
 
-  var _lastViewPortWidth : Int;
-  var _lastViewPortHeight : Int;
+  var _lastViewPortWidth : Int = 0;
+  var _lastViewPortHeight : Int = 0;
 
 	function onViewportChanged(x : Int, y : Int, width : Int, height : Int){
 		//TODO set viewproj to dirty
-		_proj.ortho(0, width, height,0,-1,1);
+		_proj = Matrix4.orthogonalProjection(0, width, height,0,-1,1);
 
 		var widthRatio = width/_focusWidth;
 		var heightRatio = height/_focusHeight;
