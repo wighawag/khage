@@ -26,13 +26,13 @@ class Khage{
   macro public static function usingG2(frame :ExprOf<kha.Framebuffer>, expr : Expr) : Expr{
 
     var newExpr = macro {
-      var g2 : kha.graphics2.Graphics = @:this this.g2;
-      @:this this.g2.begin();
+      var g2 : kha.graphics2.Graphics = cast(@:this this,kha.Framebuffer).g2;
+      g2.begin(false);
     };
 
     newExpr = newExpr.append(expr);
     newExpr = newExpr.append(macro {
-      @:this this.g2.end();
+      g2.end();
     });
 
     return newExpr;
@@ -41,13 +41,13 @@ class Khage{
   macro public static function usingG1(frame :ExprOf<kha.Framebuffer>, expr : Expr) : Expr{
 
     var newExpr = macro {
-      var g1 : kha.graphics1.Graphics = @:this this.g1;
-      @:this this.g1.begin();
+      var g1 : kha.graphics1.Graphics = cast(@:this this,kha.Framebuffer).g1;
+      g1.begin();
     };
 
     newExpr = newExpr.append(expr);
     newExpr = newExpr.append(macro {
-      @:this this.g1.end();
+      g1.end();
     });
 
     return newExpr;
