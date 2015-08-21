@@ -11,7 +11,7 @@ class BufferBase{
 	public var numIndicesWritten(default,null) : Int;
 	public var uploaded(default,null) : Bool;
 
-	private var vertexData : haxe.io.Float32Array;
+	private var vertexData : kha.arrays.Float32Array;
 	private var indexData : Array<Int>; //should be Int16Array for webgl?
 
 	inline private function lock(){

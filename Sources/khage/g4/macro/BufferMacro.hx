@@ -192,7 +192,7 @@ class BufferMacro{
 
             for (i in 0...numValues){
                 var arg = "v" + i;
-                body.append(macro  vertexData[pos+$v{i}] = $i{arg});
+                body.append(macro  vertexData.set(pos+$v{i},$i{arg}));
             }
 
             //trace(body.toString());
