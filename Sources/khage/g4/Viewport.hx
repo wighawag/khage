@@ -44,6 +44,8 @@ class Viewport{
 	var lastFrameWidth : Int = 0;
 	var lastFrameHeight : Int = 0;
 
+	var _needApply : Bool = false;
+
 	public function new(option : Option){
 		var defaultOption : Option = {
 			type:Fill,
@@ -60,21 +62,31 @@ class Viewport{
 		_option =option;
 	}
 
-	public function ensureSize(g4 : kha.graphics4.Graphics, frameWidth : Int, frameHeight : Int){
+	public function ensureSize(frameWidth : Int, frameHeight : Int){
 
 		if(lastFrameWidth != frameWidth || lastFrameHeight != frameHeight){
 			lastFrameWidth = frameWidth;
 			lastFrameHeight = frameHeight;
-			setViewportAutomatically(lastFrameWidth,lastFrameHeight,g4);
+			setViewportAutomatically(lastFrameWidth,lastFrameHeight);
 			// scaleX = width / frameWidth;
 			// scaleY = height / frameHeight;
+			_needApply = true;
 		}else{
 			//TODO remove when Kha allow to disable the viewport reset with g4.begin()
+			_needApply = true;
+		}
+	}
+
+	public function apply(g4 : kha.graphics4.Graphics){
+		if(_needApply){
+			//TODO  when kha support viewport
+			//g4.viewport(x, y, width, height);
+			//for now:
 			kha.Sys.gl.viewport(x, y, width, height);
 		}
 	}
 
-	inline function setViewportAutomatically(frameBufferWidth,frameBufferHeight,g4 : kha.graphics4.Graphics){
+	inline function setViewportAutomatically(frameBufferWidth,frameBufferHeight){
 		var availableWidth : Float = frameBufferWidth;
 		var availableHeight : Float = frameBufferHeight;
 		switch(_option.type){
@@ -172,11 +184,6 @@ class Viewport{
 			y = Std.int(tentativeY);
 			width = Std.int(availableWidth);
 			height = Std.int(availableHeight);
-
-			//TODO  when kha support viewport
-			//g4.viewport(x, y, width, height);
-			//for now:
-			kha.Sys.gl.viewport(x, y, width, height);
 		}
 
 	}
