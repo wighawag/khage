@@ -38,8 +38,11 @@ class Viewport{
 	public var width(default,null) : Int = 0;
 	public var height(default,null) : Int = 0;
 
-	var lastFrameWidth : Int;
-	var lastFrameHeight : Int;
+	// public var scaleX(default,null) : Float = 1;
+	// public var scaleY(default,null) : Float = 1;
+
+	var lastFrameWidth : Int = 0;
+	var lastFrameHeight : Int = 0;
 
 	public function new(option : Option){
 		var defaultOption : Option = {
@@ -58,12 +61,17 @@ class Viewport{
 	}
 
 	public function ensureSize(g4 : kha.graphics4.Graphics, frameWidth : Int, frameHeight : Int){
-		//TODO enable check when Kha allow to disable the viewport reset with g4.begin()
-		//if(lastFrameWidth != frameWidth || lastFrameHeight != frameHeight){
+
+		if(lastFrameWidth != frameWidth || lastFrameHeight != frameHeight){
 			lastFrameWidth = frameWidth;
 			lastFrameHeight = frameHeight;
 			setViewportAutomatically(lastFrameWidth,lastFrameHeight,g4);
-		//}
+			// scaleX = width / frameWidth;
+			// scaleY = height / frameHeight;
+		}else{
+			//TODO remove when Kha allow to disable the viewport reset with g4.begin()
+			kha.Sys.gl.viewport(x, y, width, height);
+		}
 	}
 
 	inline function setViewportAutomatically(frameBufferWidth,frameBufferHeight,g4 : kha.graphics4.Graphics){
