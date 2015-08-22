@@ -63,7 +63,7 @@ class OrthoCamera{
   }
 
   public function toBufferCoordinates(vec3 : Vector3) : Vector3{
-		var vec4 = new Vector4(vec3.x,vec3.y,vec3.z,0);
+		var vec4 = new Vector4(vec3.x,vec3.y,vec3.z,1);
 		var out = _view.multvec(vec4);
     out.x + _viewport.x;
     out.y + _viewport.y;
