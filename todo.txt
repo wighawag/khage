@@ -1,0 +1,30 @@
+//TODO use only this (remove centerOn and remove constructor width/heigth params)
+	public function setFocus(x : Float, y : Float, width : Float, height : Float){
+
+		if(_focusWidth != width || _focusHeight != height){
+			_focusWidth = width;
+			_focusHeight = height;
+			onViewportChanged(_viewport.x,_viewport.y, _viewport.width, _viewport.height); //TODO rename that function
+		}
+
+
+		//TODO keep in memory (state)
+		_view = Matrix4.identity();
+		_view = _view.multmat(Matrix4.scale(_scale,_scale,1));
+		var transX = - (x - (_visibleWidth-_focusWidth)/2);
+		var transY = -y;
+		_view = _view.multmat(Matrix4.translation(transX,transY, 0)); //TODO configure, default for bow to center
+		viewproj = _proj.multmat(_view);
+
+		g2Transformation = FastMatrix3.identity();
+		if(_viewport != null && (_viewport.x != 0 || _viewport.y != 0)){ //TODO test with various viewport configurations
+			g2Transformation = g2Transformation.multmat(FastMatrix3.translation(_viewport.x,_viewport.y));
+		}
+		g2Transformation = g2Transformation.multmat(FastMatrix3.scale(_scale,_scale));
+		g2Transformation = g2Transformation.multmat(FastMatrix3.translation(transX,transY));
+		// if(_viewport.scaleX != 1 || _viewport.scaleY != 1){
+		//  	g2Transformation = g2Transformation.multmat(FastMatrix3.scale(_viewport.scaleX,_viewport.scaleY));
+		//
+
+
+	}
