@@ -190,6 +190,18 @@ class ProgramMacro{
         case "Sampler2D":
           arguments.push({name:"texture", type: macro : kha.Image});
           body = macro g.setTexture($i{uniformLocationVariableName},texture);
+
+          fields.push({
+          name: "set_" + uniform.name + "_asVideo",
+          pos: pos,
+          access: [APublic],
+          kind: FFun({
+            args: [{name:"texture", type: macro : kha.Video}],
+            expr: macro g.setVideoTexture($i{uniformLocationVariableName},texture),
+            ret: null
+          }),
+        });
+
         case "SamplerCube":
           //TODO
           // arguments.push({name:"mat", type: macro : kha.math.Matrix4});

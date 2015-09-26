@@ -79,10 +79,9 @@ class Viewport{
 
 	public function apply(g4 : kha.graphics4.Graphics){
 		if(_needApply){
-			//TODO  when kha support viewport
-			//g4.viewport(x, y, width, height);
-			//for now:
-			kha.Sys.gl.viewport(x, y, width, height);
+			//kha.Sys.gl.enable(kha.Sys.gl.SCISSOR_TEST);
+			g4.viewport(x, y, width, height);
+			//g4.setScissor(new kha.Rectangle(0,0,lastFrameWidth,lastFrameHeight));
 		}
 	}
 
