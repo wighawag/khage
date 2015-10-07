@@ -22,17 +22,27 @@ class ProgramMacro{
 
     switch (localType) {
       case TInst(_,[TInst(_.get() => { kind: KExpr(macro $v{(s:String)}) },_)]):
-        if(!programTypes.exists(s)){
-          var shaderPaths = s.split(",");
-          if(shaderPaths.length == 2){
+        var shaderPaths = s.split(",");
+        if(shaderPaths.length == 2){
+          if(!programTypePaths.exists(s)){
             var programClassPath = getProgramClassPathFromShaderPaths(shaderPaths[0], shaderPaths[1]);
-            var shaderGroup = getShaderGroup(shaderPaths[0], shaderPaths[1]);
-            programTypes[s] = generateProgramType(shaderGroup,shaderPaths[0],shaderPaths[1],programClassPath);
             programTypePaths[s] = programClassPath;
-          }else{
-            Context.error("2 shader path need to be provided separated by comma, no space",pos);
           }
-
+          var programClassPath = programTypePaths[s];
+          var typePathStr = programClassPath.pack.join(".") + "." + programClassPath.name;
+          try{
+              Context.getType(typePathStr);
+              if (programTypes.exists(s)){
+                  return programTypes[s];
+              }
+          }catch(e : Dynamic){
+              trace("not found", typePathStr);
+          }
+          var shaderGroup = getShaderGroup(shaderPaths[0], shaderPaths[1]);
+          programTypes[s] = generateProgramType(shaderGroup,shaderPaths[0],shaderPaths[1],programClassPath);
+          programTypePaths[s] = programClassPath;
+        }else{
+          Context.error("2 shader path need to be provided separated by comma, no space",pos);
         }
         return programTypes[s];
       default:
@@ -47,12 +57,26 @@ class ProgramMacro{
     var key = vertexShaderPath+","+fragmentShaderPath;
     if(!programTypePaths.exists(key)){
       var programClassPath = getProgramClassPathFromShaderPaths(vertexShaderPath, fragmentShaderPath);
-      var shaderGroup = getShaderGroup(vertexShaderPath, fragmentShaderPath);
-      programTypes[key] = generateProgramType(shaderGroup,vertexShaderPath,fragmentShaderPath,programClassPath);
       programTypePaths[key] = programClassPath;
     }
-    return programTypePaths[key];
-
+    var programClassPath = programTypePaths[key];
+    var shaderGroup = getShaderGroup(vertexShaderPath, fragmentShaderPath);
+    var typePathStr = programClassPath.pack.join(".") + "." + programClassPath.name;
+    var toGenerate = true;
+    
+    try{
+        Context.getType(typePathStr);
+        if (programTypes.exists(key)){
+            toGenerate = false;
+        }
+    }catch(e : Dynamic){
+        
+    }
+    if(toGenerate){
+      programTypes[key] = generateProgramType(shaderGroup,vertexShaderPath,fragmentShaderPath,programClassPath);  
+    }
+    
+    return programClassPath;
   }
 
   static private function getShaderGroup(vertexShaderPath : String,fragmentShaderPath : String) : khage.g4.glsl.GLSLShaderGroup{

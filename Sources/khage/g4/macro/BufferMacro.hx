@@ -106,11 +106,15 @@ class BufferMacro{
         var pos = Context.currentPos();
         var bufferClassPath = getBufferClassPathFromAttributes(attributes);
 
-        if (bufferTypes.exists(bufferClassPath.name)){
-            //trace("already generated " + bufferClassPath.name);
-            return bufferTypes[bufferClassPath.name];
+        var typePathStr = bufferClassPath.pack.join(".") + "." + bufferClassPath.name;
+        try{
+            Context.getType(typePathStr);
+            if (bufferTypes.exists(bufferClassPath.name)){
+                return bufferTypes[bufferClassPath.name];
+            }
+        }catch(e : Dynamic){
+            
         }
-
 
         var fields : Array<Field> = [];
 
