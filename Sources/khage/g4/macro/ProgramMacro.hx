@@ -6,9 +6,6 @@ import haxe.macro.Context;
 
 using khage.util.macro.Util;
 
-//vertexBuffer = new VertexBuffer();
-//indexBuffer = new IndexBuffer();
-
 class ProgramMacro{
 
   static var programTypes : Map<String,ComplexType> = new Map();
@@ -24,27 +21,11 @@ class ProgramMacro{
       case TInst(_,[TInst(_.get() => { kind: KExpr(macro $v{(s:String)}) },_)]):
         var shaderPaths = s.split(",");
         if(shaderPaths.length == 2){
-          if(!programTypePaths.exists(s)){
-            var programClassPath = getProgramClassPathFromShaderPaths(shaderPaths[0], shaderPaths[1]);
-            programTypePaths[s] = programClassPath;
-          }
-          var programClassPath = programTypePaths[s];
-          var typePathStr = programClassPath.pack.join(".") + "." + programClassPath.name;
-          try{
-              Context.getType(typePathStr);
-              if (programTypes.exists(s)){
-                  return programTypes[s];
-              }
-          }catch(e : Dynamic){
-              trace("not found", typePathStr);
-          }
-          var shaderGroup = getShaderGroup(shaderPaths[0], shaderPaths[1]);
-          programTypes[s] = generateProgramType(shaderGroup,shaderPaths[0],shaderPaths[1],programClassPath);
-          programTypePaths[s] = programClassPath;
+          getTypePathOrGenerateProgram(shaderPaths[0], shaderPaths[1]);
+          return programTypes[s];
         }else{
           Context.error("2 shader path need to be provided separated by comma, no space",pos);
         }
-        return programTypes[s];
       default:
         Context.error("expect a string constant",pos);
     }
@@ -60,7 +41,6 @@ class ProgramMacro{
       programTypePaths[key] = programClassPath;
     }
     var programClassPath = programTypePaths[key];
-    var shaderGroup = getShaderGroup(vertexShaderPath, fragmentShaderPath);
     var typePathStr = programClassPath.pack.join(".") + "." + programClassPath.name;
     var toGenerate = true;
     
@@ -73,6 +53,7 @@ class ProgramMacro{
         
     }
     if(toGenerate){
+      var shaderGroup = getShaderGroup(vertexShaderPath, fragmentShaderPath);
       programTypes[key] = generateProgramType(shaderGroup,vertexShaderPath,fragmentShaderPath,programClassPath);  
     }
     

@@ -6,9 +6,6 @@ import haxe.macro.Context;
 
 using khage.util.macro.Util;
 
-//vertexBuffer = new VertexBuffer();
-//indexBuffer = new IndexBuffer();
-
 class BufferMacro{
 
   static var bufferTypes : Map<String,ComplexType> = new Map();
@@ -33,22 +30,6 @@ class BufferMacro{
                     default : null;
                 }
             default:null;
-        }
-        if(typeParam == null){
-            //Still alow specifying buffer via their porgram //TODO use shader paths separated by commas
-//             switch (localType) {
-//             case TInst(_,[t]):
-//                 switch(t){
-//                     case TInst(ref,_):
-//                         var programType = ref.get();
-//                         var metadata = programType.meta.get();
-//                         var shaderGroup = glee.macro.GPUProgramMacro.getShaderGroupFromMetadata(metadata);
-// -                       return getBufferClassFromAttributes(shaderGroup.attributes);
-//                     case TMono(_): Context.error("need to specify the program type explicitly, no type inference supported", pos);
-//                     default: Context.error("unsuported type : " +  localType, pos);
-//                 }
-//                 default: Context.error("unsuported type : " +  localType, pos);
-//             }
         }
 
         if(typeParam == null){
@@ -87,15 +68,6 @@ class BufferMacro{
                     return null;
             }
         }
-
-        attributes.sort(function(a,b){
-					if (a.name < b.name) return -1;
-    			if (a.name > b.name) return 1;
-    			return 0;
-				});
-
-
-        //TODO sort
 
         var bufferType = getBufferClassFromAttributes(attributes);
 
@@ -320,7 +292,6 @@ class BufferMacro{
         bufferClassName = StringTools.replace(bufferClassName,"%","_");
 
         if (bufferTypeNames.exists(bufferClassName)){
-            //trace("already generated " + bufferClassPath.name);
             bufferClassName = bufferTypeNames[bufferClassName];
         }else{
             //TODO use different naming
