@@ -6,12 +6,12 @@ import haxe.macro.Context;
 
 using khage.util.macro.Util;
 
-class ProgramMacro{
+class PipelineMacro{
 
-  static var programTypes : Map<String,ComplexType> = new Map();
-  static var programTypePaths : Map<String,TypePath> = new Map();
-  static var programTypeNames : Map<String,String> = new Map();
-  static var numProgramTypes : Int =0;
+  static var pipelineTypes : Map<String,ComplexType> = new Map();
+  static var pipelineTypePaths : Map<String,TypePath> = new Map();
+  static var pipelineTypeNames : Map<String,String> = new Map();
+  static var numPipelineTypes : Int =0;
 
 	macro static public function apply() : ComplexType{
     var pos = Context.currentPos();
@@ -21,8 +21,8 @@ class ProgramMacro{
       case TInst(_,[TInst(_.get() => { kind: KExpr(macro $v{(s:String)}) },_)]):
         var shaderPaths = s.split(",");
         if(shaderPaths.length == 2){
-          getTypePathOrGenerateProgram(shaderPaths[0], shaderPaths[1]);
-          return programTypes[s];
+          getTypePathOrGeneratePipeline(shaderPaths[0], shaderPaths[1]);
+          return pipelineTypes[s];
         }else{
           Context.error("2 shader path need to be provided separated by comma, no space",pos);
         }
@@ -34,19 +34,19 @@ class ProgramMacro{
     return null;
   }
 
-  static public function getTypePathOrGenerateProgram(vertexShaderPath : String,fragmentShaderPath : String){
+  static public function getTypePathOrGeneratePipeline(vertexShaderPath : String,fragmentShaderPath : String){
     var key = vertexShaderPath+","+fragmentShaderPath;
-    if(!programTypePaths.exists(key)){
-      var programClassPath = getProgramClassPathFromShaderPaths(vertexShaderPath, fragmentShaderPath);
-      programTypePaths[key] = programClassPath;
+    if(!pipelineTypePaths.exists(key)){
+      var pipelineClassPath = getPipelineClassPathFromShaderPaths(vertexShaderPath, fragmentShaderPath);
+      pipelineTypePaths[key] = pipelineClassPath;
     }
-    var programClassPath = programTypePaths[key];
-    var typePathStr = programClassPath.pack.join(".") + "." + programClassPath.name;
+    var pipelineClassPath = pipelineTypePaths[key];
+    var typePathStr = pipelineClassPath.pack.join(".") + "." + pipelineClassPath.name;
     var toGenerate = true;
     
     try{
         Context.getType(typePathStr);
-        if (programTypes.exists(key)){
+        if (pipelineTypes.exists(key)){
             toGenerate = false;
         }
     }catch(e : Dynamic){
@@ -54,10 +54,10 @@ class ProgramMacro{
     }
     if(toGenerate){
       var shaderGroup = getShaderGroup(vertexShaderPath, fragmentShaderPath);
-      programTypes[key] = generateProgramType(shaderGroup,vertexShaderPath,fragmentShaderPath,programClassPath);  
+      pipelineTypes[key] = generatePipelineType(shaderGroup,vertexShaderPath,fragmentShaderPath,pipelineClassPath);  
     }
     
-    return programClassPath;
+    return pipelineClassPath;
   }
 
   static private function getShaderGroup(vertexShaderPath : String,fragmentShaderPath : String) : khage.g4.glsl.GLSLShaderGroup{
@@ -107,17 +107,17 @@ class ProgramMacro{
     return khage.g4.glsl.GLSLShaderGroup.get(vertexShaderPath, fragmentShaderPath);
   }
 
-  static function generateProgramType(shaderGroup : khage.g4.glsl.GLSLShaderGroup,vertexShaderPath : String,fragmentShaderPath : String, programClassPath : TypePath) : ComplexType{
+  static function generatePipelineType(shaderGroup : khage.g4.glsl.GLSLShaderGroup,vertexShaderPath : String,fragmentShaderPath : String, pipelineClassPath : TypePath) : ComplexType{
 
     var pos = Context.currentPos();
     var fields : Array<Field> = [];
 
+    trace(vertexShaderPath);
+    trace(fragmentShaderPath);
     var constructorBody = macro {
-        program = new kha.graphics4.Program();
-        var vertexShader = new kha.graphics4.VertexShader(kha.Loader.the.getShader($v{vertexShaderPath}));
-        var fragmentShader = new kha.graphics4.FragmentShader(kha.Loader.the.getShader($v{fragmentShaderPath}));
-        program.setFragmentShader(fragmentShader);
-        program.setVertexShader(vertexShader);
+        pipeline = new kha.graphics4.PipelineState();
+        pipeline.vertexShader = kha.Shaders.simple_vert; //TODO //$v{vertexShaderPath};
+        pipeline.fragmentShader = kha.Shaders.simple_frag; //TODO $v{fragmentShaderPath};
         var structure = new kha.graphics4.VertexStructure(); //recompute it
     };
 
@@ -139,7 +139,8 @@ class ProgramMacro{
       }
     }
 
-    constructorBody.append(macro program.link(structure));
+    constructorBody.append(macro pipeline.inputLayout = [structure]);
+    constructorBody.append(macro pipeline.compile());
 
     for (uniform in shaderGroup.uniforms){
       var uniformName = uniform.name;
@@ -154,9 +155,9 @@ class ProgramMacro{
       if(attrTPath.name == "Sampler2D"){ //TODO ?} || attrPath.name == "SamplerCube"){
         locationType = macro : kha.graphics4.TextureUnit;
         valueType = macro : kha.Image;
-        constructorBody.append(macro $i{uniformLocationVariableName} = program.getTextureUnit($v{uniformName}));
+        constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getTextureUnit($v{uniformName}));
       }else{
-        constructorBody.append(macro $i{uniformLocationVariableName} = program.getConstantLocation($v{uniformName}));
+        constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getConstantLocation($v{uniformName}));
       }
       fields.push({
         name: uniformLocationVariableName,
@@ -266,37 +267,37 @@ class ProgramMacro{
 
     var typeDefinition : TypeDefinition = {
         pos : pos,
-        pack : programClassPath.pack,
-        name : programClassPath.name,
-        kind :TDClass({pack :["khage","g4"], name: "ProgramBase"},[], false),
+        pack : pipelineClassPath.pack,
+        name : pipelineClassPath.name,
+        kind :TDClass({pack :["khage","g4"], name: "PipelineBase"},[], false),
         fields:fields
     }
     Context.defineType(typeDefinition);
 
 
-    var programType = TPath(programClassPath);
-    programTypes[programClassPath.name] = programType;
-    return programType;
+    var pipelineType = TPath(pipelineClassPath);
+    pipelineTypes[pipelineClassPath.name] = pipelineType;
+    return pipelineType;
   }
 
 
-  static private function getProgramClassPathFromShaderPaths(vertexShaderPath : String, fragmentShaderPath : String): TypePath{
+  static private function getPipelineClassPathFromShaderPaths(vertexShaderPath : String, fragmentShaderPath : String): TypePath{
 
-      var programClassName =  "Program_" + vertexShaderPath + "_" + fragmentShaderPath;
+      var pipelineClassName =  "Pipeline_" + vertexShaderPath + "_" + fragmentShaderPath;
 
-      if (programTypeNames.exists(programClassName)){
-          programClassName = programTypeNames[programClassName];
+      if (pipelineTypeNames.exists(pipelineClassName)){
+          pipelineClassName = pipelineTypeNames[pipelineClassName];
       }else{
           //TODO use different naming
-          numProgramTypes++;
-          var newProgramClassName = "Program_" + numProgramTypes;
-          programTypeNames[programClassName] = newProgramClassName;
-          programClassName = newProgramClassName;
+          numPipelineTypes++;
+          var newPipelineClassName = "Pipeline_" + numPipelineTypes;
+          pipelineTypeNames[pipelineClassName] = newPipelineClassName;
+          pipelineClassName = newPipelineClassName;
       }
 
-      var programClassPath = {pack:["khage","g4", "program"],name:programClassName};
+      var pipelineClassPath = {pack:["khage","g4", "pipeline"],name:pipelineClassName};
 
-      return programClassPath;
+      return pipelineClassPath;
   }
 
 }

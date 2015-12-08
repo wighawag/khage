@@ -53,11 +53,11 @@ class Khage{
     return newExpr;
   }
 
-  macro public static function usingKhaProgram(g4 :ExprOf<khage.G4>, program : ExprOf<kha.graphics4.Program>,  expr : Expr) : Expr{
+  macro public static function usingKhaPipelineState(g4 :ExprOf<khage.G4>, pipelineState : ExprOf<kha.graphics4.PipelineState>,  expr : Expr) : Expr{
 
     var newExpr = macro {
-      var prog : khage.Program = cast(@:this this);
-      @:this this.use($v{program});
+      var pipelinse : khage.PipelineState = cast(@:this this);
+      @:this this.use($v{pipelineState});
     };
 
     newExpr = newExpr.append(expr);
@@ -66,4 +66,4 @@ class Khage{
 
 }
 
-typedef ProgExtension = khage.g4.ProgramExtension;
+typedef PipelineExtension = khage.g4.PipelineExtension;
