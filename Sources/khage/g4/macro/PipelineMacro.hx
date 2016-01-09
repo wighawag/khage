@@ -5,6 +5,7 @@ import haxe.macro.Type;
 import haxe.macro.Context;
 
 using khage.util.macro.Util;
+using StringTools;
 
 class PipelineMacro{
 
@@ -112,12 +113,10 @@ class PipelineMacro{
     var pos = Context.currentPos();
     var fields : Array<Field> = [];
 
-    trace(vertexShaderPath);
-    trace(fragmentShaderPath);
     var constructorBody = macro {
         pipeline = new kha.graphics4.PipelineState();
-        pipeline.vertexShader = kha.Shaders.simple_vert; //TODO //$v{vertexShaderPath};
-        pipeline.fragmentShader = kha.Shaders.simple_frag; //TODO $v{fragmentShaderPath};
+        pipeline.vertexShader = $p{["kha","Shaders",vertexShaderPath.replace(".","_")]};
+        pipeline.fragmentShader = $p{["kha","Shaders",fragmentShaderPath.replace(".","_")]};
         var structure = new kha.graphics4.VertexStructure(); //recompute it
     };
 
@@ -140,7 +139,7 @@ class PipelineMacro{
     }
 
     constructorBody.append(macro pipeline.inputLayout = [structure]);
-    constructorBody.append(macro pipeline.compile());
+    constructorBody.append(macro pipeline.compile()); //TODO move compile out of here (see PipelineExtension comments)
 
     for (uniform in shaderGroup.uniforms){
       var uniformName = uniform.name;

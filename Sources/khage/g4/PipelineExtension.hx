@@ -7,12 +7,13 @@ using khage.util.macro.Util;
 using haxe.macro.ExprTools;
 
 class PipelineExtension{
-  macro public static function usingPipeline(g4 :ExprOf<khage.G4>, vs :String, fs : String, expr : Expr) : Expr{
+  macro public static function usingPipeline(g4 :ExprOf<khage.G4>, vs :String, fs : String, stateExpr : Expr, expr : Expr) : Expr{
+    //TODO use stateExpr
     var pos = Context.currentPos();
-    var pipelineTypePath = khage.g4.macro.PipelineMacro.getTypePathOrGeneratePipeline(vs,fs); //TODO add blend,depthtest params...
+    var pipelineTypePath = khage.g4.macro.PipelineMacro.getTypePathOrGeneratePipeline(vs,fs); //TODO add blend,depthtest params... (actually no see creationExpr below, the classis only dependenit of fs and vs)
     var creationExpr = {
       pos: pos,
-      expr:  ENew(pipelineTypePath,[])
+      expr:  ENew(pipelineTypePath,[]) //TODO add stencyl,depth... setup + compile here
     };
     var varExpr = {
       pos: pos,
@@ -23,7 +24,7 @@ class PipelineExtension{
       }])
     };
 
-    var key = vs + "," + fs;
+    var key = vs + "," + fs; //TODO key need to use depth,blend... params
     var newExpr = macro {
       $e{varExpr};
       if(!@:privateAccess khage.g4.PipelineBase.pipelines.exists($v{key})){
