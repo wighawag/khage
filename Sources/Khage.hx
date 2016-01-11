@@ -3,6 +3,8 @@ import haxe.macro.Context;
 
 using khage.util.macro.Util;
 
+
+
 class Khage{
 
 
@@ -67,3 +69,8 @@ class Khage{
 }
 
 typedef PipelineExtension = khage.g4.PipelineExtension;
+
+typedef CompareMode = kha.graphics4.CompareMode;
+typedef BlendingOperation = kha.graphics4.BlendingOperation;
+typedef CullMode = kha.graphics4.CullMode;
+typedef StencilAction = kha.graphics4.StencilAction;

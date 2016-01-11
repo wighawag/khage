@@ -4,8 +4,8 @@
 	"tags":["Kha","graphic","shader"],
 	"description":"KHA Graphical Extension",
 	"contributors":["wighawag"],
-	"releasenote":"fix stride issue",
-	"version":"0.0.2",
+	"releasenote":"use pipeline",
+	"version":"0.0.3",
 	"url":"https://github.com/wighawag/khage",
 	"classPath":"Sources"
 }

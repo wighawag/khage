@@ -117,6 +117,31 @@ class PipelineMacro{
         pipeline = new kha.graphics4.PipelineState();
         pipeline.vertexShader = $p{["kha","Shaders",vertexShaderPath.replace(".","_")]};
         pipeline.fragmentShader = $p{["kha","Shaders",fragmentShaderPath.replace(".","_")]};
+        
+        if(conf.cull != null){
+            pipeline.cullMode = conf.cull.mode;    
+        }
+        
+        if(conf.depth != null){
+            pipeline.depthWrite = conf.depth.write;
+            pipeline.depthMode = conf.depth.mode;    
+        }
+        
+        if(conf.stencil != null){
+            pipeline.stencilMode = conf.stencil.mode;
+            pipeline.stencilBothPass = conf.stencil.bothPass;
+            pipeline.stencilDepthFail = conf.stencil.depthFail;
+            pipeline.stencilFail = conf.stencil.fail;
+            pipeline.stencilReferenceValue = conf.stencil.referenceValue;
+            pipeline.stencilReadMask = conf.stencil.readMask;
+            pipeline.stencilWriteMask = conf.stencil.writeMask;    
+        }            
+        
+        if(conf.blend != null){
+            pipeline.blendSource = conf.blend.source;
+            pipeline.blendDestination = conf.blend.destination;    
+        }    
+         
         var structure = new kha.graphics4.VertexStructure(); //recompute it
     };
 
@@ -139,8 +164,8 @@ class PipelineMacro{
     }
 
     constructorBody.append(macro pipeline.inputLayout = [structure]);
-    constructorBody.append(macro pipeline.compile()); //TODO move compile out of here (see PipelineExtension comments)
-
+    constructorBody.append(macro pipeline.compile());
+   
     for (uniform in shaderGroup.uniforms){
       var uniformName = uniform.name;
       var uniformLocationVariableName = "_" + uniformName + "_shaderLocation";
@@ -190,7 +215,7 @@ class PipelineMacro{
           arguments.push({name:"x", type: macro : Float});
           body = macro g.setFloat($i{uniformLocationVariableName},x);
         case "Mat4":
-          arguments.push({name:"mat", type: macro : kha.math.Matrix4});
+          arguments.push({name:"mat", type: macro : kha.math.FastMatrix4});
           body = macro g.setMatrix($i{uniformLocationVariableName},mat);
         case "Sampler2D":
           arguments.push({name:"texture", type: macro : kha.Image});
@@ -209,7 +234,7 @@ class PipelineMacro{
 
         case "SamplerCube":
           //TODO
-          // arguments.push({name:"mat", type: macro : kha.math.Matrix4});
+          // arguments.push({name:"mat", type: macro : kha.math.FastMatrix4});
           // body = macro g.setMatrix(mat);
         //default :
         //    throw "" + uniform.type + " not supported yet";
@@ -228,13 +253,12 @@ class PipelineMacro{
 
     }
 
-
     fields.push({
           name: "new",
           pos: pos,
           access: [APublic],
           kind: FFun({
-            args:[],
+            args:[{name:"conf", type: macro : khage.g4.PipelineConf}],
             expr: constructorBody,
             ret: null
           }),
