@@ -42,8 +42,8 @@ class PipelineExtension{
 	var stencilReadMask = macro $v{0xff};
 	var stencilWriteMask = macro $v{0xff};
 		
-	var blendSource = macro $v{kha.graphics4.BlendingOperation.BlendOne};
-	var blendDestination = macro $v{kha.graphics4.BlendingOperation.BlendZero};
+	var blendSource = macro $v{kha.graphics4.BlendingFactor.BlendOne};
+	var blendDestination = macro $v{kha.graphics4.BlendingFactor.BlendZero};
     
     if(conf != null){
         switch(conf.expr){

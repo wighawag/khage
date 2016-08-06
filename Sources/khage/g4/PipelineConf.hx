@@ -16,8 +16,8 @@ typedef Depth = {
 }
 
 typedef Blend = {
-    source : kha.graphics4.BlendingOperation,
-    destination : kha.graphics4.BlendingOperation
+    source : kha.graphics4.BlendingFactor,
+    destination : kha.graphics4.BlendingFactor
 }
 
 typedef Cull = {

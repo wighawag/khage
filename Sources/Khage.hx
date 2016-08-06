@@ -71,6 +71,6 @@ class Khage{
 typedef PipelineExtension = khage.g4.PipelineExtension;
 
 typedef CompareMode = kha.graphics4.CompareMode;
-typedef BlendingOperation = kha.graphics4.BlendingOperation;
+typedef BlendingFactor = kha.graphics4.BlendingFactor;
 typedef CullMode = kha.graphics4.CullMode;
 typedef StencilAction = kha.graphics4.StencilAction;

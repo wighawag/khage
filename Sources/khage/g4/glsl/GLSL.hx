@@ -52,7 +52,9 @@ class GLSL{
 	static function parseUniforms(lines:Array<String>) : Map<String,ComplexType> {
 		var uniforms = new Map<String,ComplexType>();
 		for (l in lines) {
-			if (l.indexOf("uniform") > -1) {
+			var uniformPos = l.indexOf("uniform");
+			var commentPos = l.indexOf("//");
+			if ( uniformPos > -1 && (commentPos == -1 || commentPos > uniformPos)) {
 				var source = StringTools.trim(l);
 				var args = source.split(" ").slice(1);
 				var uniformName = StringTools.trim(args[1].split(";").join(""));
