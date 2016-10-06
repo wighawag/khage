@@ -1,8 +1,8 @@
 package khage.g4;
 
-import kha.math.Matrix4;
+import kha.math.FastMatrix4;
 import kha.math.Vector3;
-import kha.math.Vector4;
+import kha.math.FastVector4;
 import kha.math.FastMatrix3;
 
 typedef OrthoCameraOption = {
@@ -11,14 +11,14 @@ typedef OrthoCameraOption = {
 
 class OrthoCamera{
 
-	public var viewproj(default,null) : Matrix4; //TODO return a Const<Mat4>
+	public var viewproj(default,null) : FastMatrix4; //TODO return a Const<Mat4>
 	public var g2Transformation(default,null) : FastMatrix3;
 	public function new(width : Float, height : Float, ?option : OrthoCameraOption){
 		_focusWidth = width;
 		_focusHeight = height;
-		_proj = Matrix4.identity();
-		_view = Matrix4.identity();
-		viewproj = Matrix4.identity();
+		_proj = FastMatrix4.identity();
+		_view = FastMatrix4.identity();
+		viewproj = FastMatrix4.identity();
 		g2Transformation = FastMatrix3.identity();
 		var defaultOption : OrthoCameraOption = {
 			scale:true
@@ -42,9 +42,9 @@ class OrthoCamera{
 
   public function centerOn(x : Float, y : Float){
     //TODO keep in memory (state)
-    _view = Matrix4.identity();
-    _view = _view.multmat(Matrix4.scale(_scale,_scale,1));
-    _view = _view.multmat(Matrix4.translation(_visibleWidth/2 - x,_visibleHeight/2 - y, 0));
+    _view = FastMatrix4.identity();
+    _view = _view.multmat(FastMatrix4.scale(_scale,_scale,1));
+    _view = _view.multmat(FastMatrix4.translation(_visibleWidth/2 - x,_visibleHeight/2 - y, 0));
     viewproj = _proj.multmat(_view);
 
 		g2Transformation = FastMatrix3.identity();
@@ -63,7 +63,7 @@ class OrthoCamera{
   }
 
   public function toBufferCoordinates(vec3 : Vector3) : Vector3{
-		var vec4 = new Vector4(vec3.x,vec3.y,vec3.z,1);
+		var vec4 = new FastVector4(vec3.x,vec3.y,vec3.z,1);
 		var out = _view.multvec(vec4);
     out.x + _viewport.x;
     out.y + _viewport.y;
@@ -74,8 +74,8 @@ class OrthoCamera{
   var _option : OrthoCameraOption;
 	var _scale : Float = 1;
 
-	var _proj : Matrix4;
-	var _view: Matrix4;
+	var _proj : FastMatrix4;
+	var _view: FastMatrix4;
 
   var _visibleWidth : Float = 0;
 	var _visibleHeight : Float = 0;
@@ -88,7 +88,7 @@ class OrthoCamera{
 
 	function onViewportChanged(x : Int, y : Int, width : Int, height : Int){
 		//TODO set viewproj to dirty
-		_proj = Matrix4.orthogonalProjection(0, width, height,0,-1,1);
+		_proj = FastMatrix4.orthogonalProjection(0, width, height,0,-1,1);
 
 		var widthRatio = width/_focusWidth;
 		var heightRatio = height/_focusHeight;
