@@ -7,6 +7,8 @@ import haxe.macro.Context;
 using khage.util.macro.Util;
 using StringTools;
 
+import khage.g4.KhaAssetFiles;
+
 class PipelineMacro{
 
   static var pipelineTypes : Map<String,ComplexType> = new Map();
@@ -53,62 +55,286 @@ class PipelineMacro{
     }catch(e : Dynamic){
         
     }
+
     if(toGenerate){
-      var shaderGroup = getShaderGroup(vertexShaderPath, fragmentShaderPath);
-      pipelineTypes[key] = generatePipelineType(shaderGroup,vertexShaderPath,fragmentShaderPath,pipelineClassPath);  
+      vertexShaderPath = vertexShaderPath.replace(".","_");
+      fragmentShaderPath = fragmentShaderPath.replace(".","_");
+      
+      var json : KhaAssetFiles = haxe.Json.parse(sys.io.File.getContent("html5-resources/files.json"));
+      var vdesc : ShaderDescription = null;
+      var fdesc : ShaderDescription = null;
+      for(file in json.files){
+        if(file.name == vertexShaderPath){
+          vdesc = cast file;
+          if(fdesc != null)break;
+        }
+        if(file.name == fragmentShaderPath){
+          fdesc = cast file;
+          if(vdesc != null)break;
+        }
+      }
+
+      if(vdesc == null ){
+        Context.error("no shader file found for " + vertexShaderPath, Context.currentPos());
+      }
+      if(vdesc == null ){
+        Context.error("no shader file found for " + vertexShaderPath, Context.currentPos());
+      }
+
+      if(vdesc == null || fdesc == null){
+        return null;
+      }
+
+      var desc = KhaAssetFilesUtil.assembleShaderDescriptions([vdesc,fdesc]);
+      pipelineTypes[key] = generatePipelineType(desc,vertexShaderPath,fragmentShaderPath,pipelineClassPath);
     }
     
     return pipelineClassPath;
   }
 
-  static private function getShaderGroup(vertexShaderPath : String,fragmentShaderPath : String) : khage.g4.glsl.GLSLShaderGroup{
+  // static private function getShaderGroup(vertexShaderPath : String,fragmentShaderPath : String) : khage.g4.glsl.GLSLShaderGroup{
 
-    var pos = Context.currentPos();
+  //   var pos = Context.currentPos();
 
-    var classPaths = Context.getClassPath();
-    var vertexShaderFound = false;
-    var fragmentShaderFound = false;
-    for (classPath in classPaths){
-      var prefix = classPath + "/Shaders/";
-      if(!vertexShaderFound){
-        var actualShaderPath = classPath + "/Shaders/" + vertexShaderPath + ".glsl";
-        if(sys.FileSystem.exists(actualShaderPath)){
-          vertexShaderPath = actualShaderPath;
-          vertexShaderFound = true;
-          if(fragmentShaderFound){
-            break;
-          }
-        }
-      }
-      if(!fragmentShaderFound){
-        var actualShaderPath = classPath + "/Shaders/" + fragmentShaderPath + ".glsl";
-        if(sys.FileSystem.exists(actualShaderPath)){
-          fragmentShaderPath = actualShaderPath;
-          fragmentShaderFound = true;
-          if(vertexShaderFound){
-            break;
-          }
-        }
-      }
-    }
+  //   var classPaths = Context.getClassPath();
+  //   var vertexShaderFound = false;
+  //   var fragmentShaderFound = false;
+  //   for (classPath in classPaths){
+  //     var prefix = classPath + "/Shaders/";
+  //     if(!vertexShaderFound){
+  //       var actualShaderPath = classPath + "/Shaders/" + vertexShaderPath + ".glsl";
+  //       if(sys.FileSystem.exists(actualShaderPath)){
+  //         vertexShaderPath = actualShaderPath;
+  //         vertexShaderFound = true;
+  //         if(fragmentShaderFound){
+  //           break;
+  //         }
+  //       }
+  //     }
+  //     if(!fragmentShaderFound){
+  //       var actualShaderPath = classPath + "/Shaders/" + fragmentShaderPath + ".glsl";
+  //       if(sys.FileSystem.exists(actualShaderPath)){
+  //         fragmentShaderPath = actualShaderPath;
+  //         fragmentShaderFound = true;
+  //         if(vertexShaderFound){
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   }
 
-    var error = false;
-    if(!vertexShaderFound){
-        Context.error("cannot find vertex shader : " + vertexShaderPath,pos);
-        error = true;
-    }
-    if(!fragmentShaderFound){
-        Context.error("cannot find fragment shader : " + fragmentShaderPath,pos);
-        error = true;
-    }
-    if(error){
-      return null;
-    }
+  //   var error = false;
+  //   if(!vertexShaderFound){
+  //       Context.error("cannot find vertex shader : " + vertexShaderPath,pos);
+  //       error = true;
+  //   }
+  //   if(!fragmentShaderFound){
+  //       Context.error("cannot find fragment shader : " + fragmentShaderPath,pos);
+  //       error = true;
+  //   }
+  //   if(error){
+  //     return null;
+  //   }
 
-    return khage.g4.glsl.GLSLShaderGroup.get(vertexShaderPath, fragmentShaderPath);
-  }
+  //   return khage.g4.glsl.GLSLShaderGroup.get(vertexShaderPath, fragmentShaderPath);
+  // }
 
-  static function generatePipelineType(shaderGroup : khage.g4.glsl.GLSLShaderGroup,vertexShaderPath : String,fragmentShaderPath : String, pipelineClassPath : TypePath) : ComplexType{
+  // static function generatePipelineType(shaderGroup : khage.g4.glsl.GLSLShaderGroup,vertexShaderPath : String,fragmentShaderPath : String, pipelineClassPath : TypePath) : ComplexType{
+
+  //   var pos = Context.currentPos();
+  //   var fields : Array<Field> = [];
+
+  //   var constructorBody = macro {
+  //       pipeline = new kha.graphics4.PipelineState();
+  //       pipeline.vertexShader = $p{["kha","Shaders",vertexShaderPath.replace(".","_")]};
+  //       pipeline.fragmentShader = $p{["kha","Shaders",fragmentShaderPath.replace(".","_")]};
+        
+  //       if(conf.cull != null){
+  //           pipeline.cullMode = conf.cull.mode;    
+  //       }
+        
+  //       if(conf.depth != null){
+  //           pipeline.depthWrite = conf.depth.write;
+  //           pipeline.depthMode = conf.depth.mode;    
+  //       }
+        
+  //       if(conf.stencil != null){
+  //           pipeline.stencilMode = conf.stencil.mode;
+  //           pipeline.stencilBothPass = conf.stencil.bothPass;
+  //           pipeline.stencilDepthFail = conf.stencil.depthFail;
+  //           pipeline.stencilFail = conf.stencil.fail;
+  //           pipeline.stencilReferenceValue = conf.stencil.referenceValue;
+  //           pipeline.stencilReadMask = conf.stencil.readMask;
+  //           pipeline.stencilWriteMask = conf.stencil.writeMask;    
+  //       }            
+        
+  //       if(conf.blend != null){
+  //           pipeline.blendSource = conf.blend.source;
+  //           pipeline.blendDestination = conf.blend.destination;    
+  //       }    
+         
+  //       var structure = new kha.graphics4.VertexStructure(); //recompute it
+  //   };
+
+  //   var attributes = shaderGroup.attributes;
+  //   for (attribute in attributes){
+  //     var attributeName = attribute.name;
+  //     var attrTPath = switch(cast attribute.type){
+  //         case TPath(att): att;
+  //         default: Context.error("should be a TPath", pos); null;
+  //     };
+  //     if(attrTPath.name == "Vec4"){
+  //       constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float4));
+  //     }else if(attrTPath.name == "Vec3"){
+  //       constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float3));
+  //     }else if(attrTPath.name == "Vec2"){
+  //       constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float2));
+  //     }else{
+  //       constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float1));
+  //     }
+  //   }
+
+  //   constructorBody.append(macro pipeline.inputLayout = [structure]);
+  //   constructorBody.append(macro pipeline.compile());
+   
+  //   for (uniform in shaderGroup.uniforms){
+  //     var uniformName = uniform.name;
+  //     var uniformLocationVariableName = "_" + uniformName + "_shaderLocation";
+
+  //     var locationType = macro : kha.graphics4.ConstantLocation;
+  //     var valueType = macro : Int; //TODO
+  //     var attrTPath = switch(cast uniform.type){
+  //         case TPath(att): att;
+  //         default: Context.error("should be a TPath", pos); null;
+  //     };
+  //     if(attrTPath.name == "Sampler2D"){ //TODO ?} || attrPath.name == "SamplerCube"){
+  //       locationType = macro : kha.graphics4.TextureUnit;
+  //       valueType = macro : kha.Image;
+  //       constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getTextureUnit($v{uniformName}));
+  //     }else{
+  //       constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getConstantLocation($v{uniformName}));
+  //     }
+  //     fields.push({
+  //       name: uniformLocationVariableName,
+  //       pos: pos,
+  //       access: [APrivate],
+  //       kind: FVar(locationType,null),
+  //     });
+
+  //     var arguments = [];
+  //     var body : Expr;
+  //     switch(attrTPath.name){
+  //       case "Vec2":
+  //           arguments.push({name:"x", type: macro : Float});
+  //           arguments.push({name:"y", type: macro : Float});
+  //           body = macro g.setFloat2($i{uniformLocationVariableName},x,y);
+  //       case "Vec3":
+  //         arguments.push({name:"x", type: macro : Float});
+  //         arguments.push({name:"y", type: macro : Float});
+  //         arguments.push({name:"z", type: macro : Float});
+  //         body = macro g.setFloat3($i{uniformLocationVariableName},x,y,z);
+  //       case "Vec4":
+  //         arguments.push({name:"x", type: macro : Float});
+  //         arguments.push({name:"y", type: macro : Float});
+  //         arguments.push({name:"z", type: macro : Float});
+  //         arguments.push({name:"w", type: macro : Float});
+  //         body = macro g.setFloat4($i{uniformLocationVariableName},x,y,z,w);
+  //       case "Int":
+  //         arguments.push({name:"x", type: macro : Int});
+  //         body = macro g.setInt($i{uniformLocationVariableName},x);
+  //       case "Float":
+  //         arguments.push({name:"x", type: macro : Float});
+  //         body = macro g.setFloat($i{uniformLocationVariableName},x);
+  //       case "Mat4":
+  //         arguments.push({name:"mat", type: macro : kha.math.FastMatrix4});
+  //         body = macro g.setMatrix($i{uniformLocationVariableName},mat);
+  //       case "Sampler2D":
+  //         arguments.push({name:"texture", type: macro : kha.Image});
+  //         body = macro g.setTexture($i{uniformLocationVariableName},texture);
+
+  //         fields.push({
+  //         name: "set_" + uniform.name + "_asVideo",
+  //         pos: pos,
+  //         access: [APublic],
+  //         kind: FFun({
+  //           args: [{name:"texture", type: macro : kha.Video}],
+  //           expr: macro g.setVideoTexture($i{uniformLocationVariableName},texture),
+  //           ret: null
+  //         }),
+  //       });
+
+  //       case "SamplerCube":
+  //         //TODO
+  //         // arguments.push({name:"mat", type: macro : kha.math.FastMatrix4});
+  //         // body = macro g.setMatrix(mat);
+  //       //default :
+  //       //    throw "" + uniform.type + " not supported yet";
+  //     }
+
+  //     fields.push({
+  //       name: "set_" + uniform.name,
+  //       pos: pos,
+  //       access: [APublic],
+  //       kind: FFun({
+  //         args: arguments,
+  //         expr: body,
+  //         ret: null
+  //       }),
+  //     });
+
+  //   }
+
+  //   fields.push({
+  //         name: "new",
+  //         pos: pos,
+  //         access: [APublic],
+  //         kind: FFun({
+  //           args:[{name:"conf", type: macro : khage.g4.PipelineConf}],
+  //           expr: constructorBody,
+  //           ret: null
+  //         }),
+  //       });
+
+  //   var bufferClassPath = BufferMacro.getBufferClassPathFromAttributes(attributes);
+
+  //   fields.push({
+  //     name:"draw",
+  //     pos:pos,
+  //     access: [APublic],
+  //     kind:FFun({
+  //       args : [{
+  //         name:"buffer",
+  //         type : TPath(bufferClassPath)
+  //       }],
+  //       expr: macro {
+  //         if(!buffer.uploaded){
+  //           buffer.upload();
+  //         }
+  //         g.setVertexBuffer(@:privateAccess buffer.vertexBuffer);
+  //         g.setIndexBuffer(@:privateAccess buffer.indexBuffer);
+  //         g.drawIndexedVertices(0,buffer.numIndicesWritten);
+  //       },
+  //       ret : null
+  //     })
+  //   });
+
+
+  //   var typeDefinition : TypeDefinition = {
+  //       pos : pos,
+  //       pack : pipelineClassPath.pack,
+  //       name : pipelineClassPath.name,
+  //       kind :TDClass({pack :["khage","g4"], name: "PipelineBase"},[], false),
+  //       fields:fields
+  //   }
+  //   Context.defineType(typeDefinition);
+
+
+  //   var pipelineType = TPath(pipelineClassPath);
+  //   pipelineTypes[pipelineClassPath.name] = pipelineType;
+  //   return pipelineType;
+  // }
+
+  static function generatePipelineType(desc : ShaderDescription, vertexShaderPath : String,fragmentShaderPath : String, pipelineClassPath : TypePath) : ComplexType{
 
     var pos = Context.currentPos();
     var fields : Array<Field> = [];
@@ -145,44 +371,38 @@ class PipelineMacro{
         var structure = new kha.graphics4.VertexStructure(); //recompute it
     };
 
-    var attributes = shaderGroup.attributes;
-    for (attribute in attributes){
-      var attributeName = attribute.name;
-      var attrTPath = switch(cast attribute.type){
-          case TPath(att): att;
-          default: Context.error("should be a TPath", pos); null;
-      };
-      if(attrTPath.name == "Vec4"){
-        constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float4));
-      }else if(attrTPath.name == "Vec3"){
-        constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float3));
-      }else if(attrTPath.name == "Vec2"){
-        constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float2));
-      }else{
-        constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float1));
+    
+    for (input in desc.inputs){
+      var attributeName = input.name;
+      switch (input.type) {
+        case "vec4":constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float4));
+        case "vec3":constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float3));
+        case "vec2":constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float2));
+        case "float":constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float1));
       }
     }
 
     constructorBody.append(macro pipeline.inputLayout = [structure]);
     constructorBody.append(macro pipeline.compile());
    
-    for (uniform in shaderGroup.uniforms){
+    for (uniform in desc.uniforms){
       var uniformName = uniform.name;
       var uniformLocationVariableName = "_" + uniformName + "_shaderLocation";
 
       var locationType = macro : kha.graphics4.ConstantLocation;
       var valueType = macro : Int; //TODO
-      var attrTPath = switch(cast uniform.type){
-          case TPath(att): att;
-          default: Context.error("should be a TPath", pos); null;
-      };
-      if(attrTPath.name == "Sampler2D"){ //TODO ?} || attrPath.name == "SamplerCube"){
-        locationType = macro : kha.graphics4.TextureUnit;
-        valueType = macro : kha.Image;
-        constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getTextureUnit($v{uniformName}));
-      }else{
-        constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getConstantLocation($v{uniformName}));
+      
+      switch(uniform.type){
+        case "sampler2D":
+          locationType = macro : kha.graphics4.TextureUnit;
+          valueType = macro : kha.Image;
+          constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getTextureUnit($v{uniformName}));
+          
+          //TODO remove default
+        default:
+          constructorBody.append(macro $i{uniformLocationVariableName} = pipeline.getConstantLocation($v{uniformName}));
       }
+      
       fields.push({
         name: uniformLocationVariableName,
         pos: pos,
@@ -192,32 +412,32 @@ class PipelineMacro{
 
       var arguments = [];
       var body : Expr;
-      switch(attrTPath.name){
-        case "Vec2":
+      switch(uniform.type){
+        case "vec2":
             arguments.push({name:"x", type: macro : Float});
             arguments.push({name:"y", type: macro : Float});
             body = macro g.setFloat2($i{uniformLocationVariableName},x,y);
-        case "Vec3":
+        case "vec3":
           arguments.push({name:"x", type: macro : Float});
           arguments.push({name:"y", type: macro : Float});
           arguments.push({name:"z", type: macro : Float});
           body = macro g.setFloat3($i{uniformLocationVariableName},x,y,z);
-        case "Vec4":
+        case "vec4":
           arguments.push({name:"x", type: macro : Float});
           arguments.push({name:"y", type: macro : Float});
           arguments.push({name:"z", type: macro : Float});
           arguments.push({name:"w", type: macro : Float});
           body = macro g.setFloat4($i{uniformLocationVariableName},x,y,z,w);
-        case "Int":
+        case "int":
           arguments.push({name:"x", type: macro : Int});
           body = macro g.setInt($i{uniformLocationVariableName},x);
-        case "Float":
+        case "float":
           arguments.push({name:"x", type: macro : Float});
           body = macro g.setFloat($i{uniformLocationVariableName},x);
-        case "Mat4":
+        case "mat4":
           arguments.push({name:"mat", type: macro : kha.math.FastMatrix4});
           body = macro g.setMatrix($i{uniformLocationVariableName},mat);
-        case "Sampler2D":
+        case "sampler2D":
           arguments.push({name:"texture", type: macro : kha.Image});
           body = macro g.setTexture($i{uniformLocationVariableName},texture);
 
@@ -232,7 +452,7 @@ class PipelineMacro{
           }),
         });
 
-        case "SamplerCube":
+        case "samplerCube":
           //TODO
           // arguments.push({name:"mat", type: macro : kha.math.FastMatrix4});
           // body = macro g.setMatrix(mat);
@@ -264,7 +484,7 @@ class PipelineMacro{
           }),
         });
 
-    var bufferClassPath = BufferMacro.getBufferClassPathFromAttributes(attributes);
+    var bufferClassPath = BufferMacro.getBufferClassPathFromShaderInputs(desc.inputs);
 
     fields.push({
       name:"draw",
@@ -302,7 +522,6 @@ class PipelineMacro{
     pipelineTypes[pipelineClassPath.name] = pipelineType;
     return pipelineType;
   }
-
 
   static private function getPipelineClassPathFromShaderPaths(vertexShaderPath : String, fragmentShaderPath : String): TypePath{
 

@@ -6,6 +6,8 @@ import haxe.macro.Context;
 
 using khage.util.macro.Util;
 
+import khage.g4.KhaAssetFiles;
+
 class BufferMacro{
 
   static var bufferTypes : Map<String,ComplexType> = new Map();
@@ -50,15 +52,15 @@ class BufferMacro{
             return null;
         }
 
-        var attributes = new Array<khage.g4.glsl.GLSLShaderGroup.Attribute>();
+        var attributes = new Array<ShaderAttribute>();
         for (field in fields){
             switch(field.type){
                 case TAbstract(t,_):
                     var abstractType = t.get();
                     if(abstractType.pack.length == 2 && abstractType.pack[0] == "khage" && abstractType.pack[1] == "g4"){
-                        attributes.push({name:field.name, type:TPath({name :abstractType.name, pack :abstractType.pack})});
+                        attributes.push({name:field.name, type:abstractType.name.toLowerCase()});
                     }else if(abstractType.pack.length == 0 && abstractType.name == "Float"){
-                      attributes.push({name:field.name, type:TPath({name :abstractType.name, pack :abstractType.pack})});
+                      attributes.push({name:field.name, type:"float"});
                     }else{
                         Context.error("attribute type not supported " + abstractType, pos);
                         return null;
@@ -69,14 +71,14 @@ class BufferMacro{
             }
         }
 
-        var bufferType = getBufferClassFromAttributes(attributes);
+        var bufferType = getBufferClassFromShaderInputs(attributes);
 
         return bufferType;
     }
 
-    static public function getBufferClassFromAttributes(attributes : Array<khage.g4.glsl.GLSLShaderGroup.Attribute>) : ComplexType{
+    static public function getBufferClassFromShaderInputs(inputs : Array<ShaderAttribute>) : ComplexType{
         var pos = Context.currentPos();
-        var bufferClassPath = getBufferClassPathFromAttributes(attributes);
+        var bufferClassPath = getBufferClassPathFromShaderInputs(inputs);
 
         var typePathStr = bufferClassPath.pack.join(".") + "." + bufferClassPath.name;
         try{
@@ -105,25 +107,20 @@ class BufferMacro{
 
         var totalStride : Int = 0;
 
-        for (attribute in attributes){
-            var numValues = 1;
-            var attrTPath = switch(cast attribute.type){
-                case TPath(att): att;
-                default: Context.error("should be a TPath", pos); null;
-            };
-            if(attrTPath.name == "Vec4"){
-                numValues = 4;
-            }else if(attrTPath.name == "Vec3"){
-                numValues = 3;
-            }else if(attrTPath.name == "Vec2"){
-                numValues = 2;
+        for (input in inputs){
+            var numValues =
+            switch(input.type){
+                case "vec4": 4;
+                case "vec3": 3;
+                case "vec2": 2;
+                default : 1; //TODO remove default
             }
             totalStride+= numValues; //work for samme types attributes //TODO make it work for mixed types Int/Float...
         }
 
         var stride = 0;
-        for (attribute in attributes){
-            var attributeName = attribute.name;
+        for (input in inputs){
+            var attributeName = input.name;
             var attributeMetadataName = "_" + attributeName + "_bufferPosition";
 
             getNumVerticesWrittenBody.append(macro max = Math.max(max,$i{attributeMetadataName}));
@@ -131,23 +128,20 @@ class BufferMacro{
             rewindBody.append(macro  $i{attributeMetadataName} = 0);
 
             var numValues = 1;
-            var attrTPath = switch(cast attribute.type){
-                case TPath(att): att;
-                default: Context.error("should be a TPath", pos); null;
-            };
-            if(attrTPath.name == "Vec4"){
-              constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float4));
-              numValues = 4;
-            }else if(attrTPath.name == "Vec3"){
-              constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float3));
-              numValues = 3;
-            }else if(attrTPath.name == "Vec2"){
-              constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float2));
-              numValues = 2;
-            }else{
-              constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float1));
+            switch(input.type){
+                case "vec4":
+                    constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float4));
+                    numValues = 4;
+                case "vec3": 3;
+                    constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float3));
+                    numValues = 3;
+                case "vec2": 2;
+                    constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float2));
+                    numValues = 2;
+                default ://TODO remove default
+                    constructorBody.append(macro structure.add($v{attributeName}, kha.graphics4.VertexData.Float1));
             }
-
+            
             //////////////////////initialization //////////////////////////////////////////
 
 
@@ -174,27 +168,22 @@ class BufferMacro{
             //trace(body.toString());
 
             var arguments = [];
-            var attrTPath = switch(cast attribute.type){
-                case TPath(att): att;
-                default: Context.error("should be a TPath", pos); null;
-            };
-
-            if(attrTPath.name.substr(0,3) == "Vec"){
+            if(input.type.substr(0,3) == "vec"){
                 for (i in 0...numValues){
                   arguments.push({
                     name:"v" + i,
                     type : macro : Float
                   });
                 }
-            }else if(attrTPath.name == "Float"){
+            }else if(input.type == "float"){ 
                 arguments.push({
                   name:"v0",
                   type : macro : Float
                 });
             }
-
+            
             fields.push({
-                  name: "write_" + attribute.name,
+                  name: "write_" + input.name,
                   pos: pos,
                   access: [APublic, AInline],
                   kind: FFun({
@@ -276,17 +265,17 @@ class BufferMacro{
         return bufferType;
     }
 
-    static public function getBufferClassPathFromAttributes(attributes : Array<khage.g4.glsl.GLSLShaderGroup.Attribute>): TypePath{
+    static public function getBufferClassPathFromShaderInputs(inputs : Array<ShaderAttribute>): TypePath{
         var bufferClassName =  "Buffer_";
-        attributes = attributes.copy();
-        attributes.sort(function(x,y){
+        inputs = inputs.copy();
+        inputs.sort(function(x,y){
             if(x.name == y.name){
                 return 0;
             }
             return x.name < y.name ? -1 : 1;
             });
-        for (attribute in attributes){
-          bufferClassName += attribute.name + attribute.type;
+        for (input in inputs){
+          bufferClassName += input.name + input.type;
         }
         bufferClassName = StringTools.urlEncode(bufferClassName);
         bufferClassName = StringTools.replace(bufferClassName,"%","_");
