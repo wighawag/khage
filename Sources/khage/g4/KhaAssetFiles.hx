@@ -42,6 +42,13 @@ class KhaAssetFilesUtil{
 			outputShader.inputs.push(input);
 		}
 
+        outputShader.inputs.sort(function(x,y){
+	        if(x.name == y.name){
+	            return 0;
+	        }
+	        return x.name < y.name ? -1 : 1;
+        });
+
 		var uniformSet = new Map<String,Bool>();
 		for(shader in shaders){
 			for(uniform in shader.uniforms){

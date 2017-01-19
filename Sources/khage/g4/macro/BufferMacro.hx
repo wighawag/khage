@@ -196,6 +196,7 @@ class BufferMacro{
                     name:":extern"
                   }]
                 });
+
             stride+= numValues; //work for samme types attributes //TODO make it work for mixed types Int/Float...
         }
 
@@ -267,13 +268,7 @@ class BufferMacro{
 
     static public function getBufferClassPathFromShaderInputs(inputs : Array<ShaderAttribute>): TypePath{
         var bufferClassName =  "Buffer_";
-        inputs = inputs.copy();
-        inputs.sort(function(x,y){
-            if(x.name == y.name){
-                return 0;
-            }
-            return x.name < y.name ? -1 : 1;
-            });
+
         for (input in inputs){
           bufferClassName += input.name + input.type;
         }
