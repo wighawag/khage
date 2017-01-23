@@ -33,14 +33,8 @@ typedef KhaAssetFiles = {
 
 class KhaAssetFilesUtil{
 	public static function get() : KhaAssetFiles{
-		
-		//TODO access resources file automatically
-		// #if html5
-		var path = "html5-resources/files.json";
-		// #else
-		// haxe.macro.Context.error("target not supported",haxe.macro.Context.currentPos());
-		// #end
-
+		var resourcesPath = kha.internal.AssetsBuilder.findResources();
+		var path = resourcesPath + "/files.json";
 		return haxe.Json.parse(sys.io.File.getContent(path));
 	}
 
