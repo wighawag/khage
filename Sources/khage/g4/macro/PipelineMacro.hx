@@ -60,7 +60,7 @@ class PipelineMacro{
       vertexShaderPath = vertexShaderPath.replace(".","_");
       fragmentShaderPath = fragmentShaderPath.replace(".","_");
       
-      var json : KhaAssetFiles = haxe.Json.parse(sys.io.File.getContent("html5-resources/files.json"));
+      var json : KhaAssetFiles = KhaAssetFilesUtil.get();
       var vdesc : ShaderDescription = null;
       var fdesc : ShaderDescription = null;
       for(file in json.files){
