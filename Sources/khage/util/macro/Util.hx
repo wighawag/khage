@@ -10,10 +10,9 @@ class Util{
 		switch(expr.expr){
 			case EBlock(exprs):
 				exprs.push(exprToAdd);
-				expr;
+				{pos:expr.pos,expr: EBlock(exprs)};
 			default :
-				expr.expr = EBlock([{pos:expr.pos,expr:expr.expr}, exprToAdd]);
-				expr;
+				{pos:expr.pos,expr: EBlock([{pos:expr.pos,expr:expr.expr}, exprToAdd])};
 		}
 	}
 

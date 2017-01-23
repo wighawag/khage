@@ -10,17 +10,14 @@ class Khage{
 
   macro public static function usingG4(frame :ExprOf<kha.Framebuffer>, expr : Expr) : Expr{
 
-    var newExpr = macro {
-
+    var newExpr =  macro {
       var g4 : khage.G4 = cast(@:this this,kha.Framebuffer).g4;
-      @:this this.g4.begin(false); //TODO pass viewport
+      untyped g4.begin(); //TODO pass viewport
+      $e{expr}
+      untyped g4.end();
     };
 
-    newExpr = newExpr.append(expr);
-    newExpr = newExpr.append(macro {
-      @:this this.g4.end();
-    });
-
+    // trace(haxe.macro.ExprTools.toString(newExpr));
     return newExpr;
   }
 
@@ -29,7 +26,7 @@ class Khage{
 
     var newExpr = macro {
       var g2 : kha.graphics2.Graphics = cast(@:this this,kha.Framebuffer).g2;
-      g2.begin(false);
+      g2.begin();
     };
 
     newExpr = newExpr.append(expr);
