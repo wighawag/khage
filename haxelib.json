@@ -4,8 +4,8 @@
 	"tags":["Kha","graphic","shader"],
 	"description":"KHA Graphical Extension",
 	"contributors":["wighawag"],
-	"releasenote":"update to kha",
-	"version":"0.0.4",
+	"releasenote":"use kha shader parser",
+	"version":"0.0.5",
 	"url":"https://github.com/wighawag/khage",
 	"classPath":"Sources"
 }
