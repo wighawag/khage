@@ -28,5 +28,6 @@ typedef PipelineConf = {
     ?stencil : Stencil,
     ?depth : Depth,
     ?cull : Cull,
-    ?blend : Blend
+    ?blend : Blend,
+    ?inputLayout : Array<kha.graphics4.VertexStructure>
 }

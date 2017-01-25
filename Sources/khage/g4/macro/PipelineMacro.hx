@@ -368,6 +368,8 @@ class PipelineMacro{
             pipeline.blendDestination = conf.blend.destination;    
         }    
          
+         //TODO get rid of structure computation if strucutr is passed in
+         //TODO check at runtime if conf.inputLayout matches
         var structure = new kha.graphics4.VertexStructure(); //recompute it
     };
 
@@ -382,7 +384,7 @@ class PipelineMacro{
       }
     }
 
-    constructorBody.append(macro pipeline.inputLayout = [structure]);
+    constructorBody.append(macro if(conf.inputLayout != null){pipeline.inputLayout = conf.inputLayout;}else{pipeline.inputLayout = [structure];});
     constructorBody.append(macro pipeline.compile());
    
     for (uniform in desc.uniforms){
@@ -486,6 +488,16 @@ class PipelineMacro{
 
     var bufferClassPath = BufferMacro.getBufferClassPathFromShaderInputs(desc.inputs);
 
+    var typePathStr = bufferClassPath.pack.join(".") + "." + bufferClassPath.name;
+    var type = macro : Dynamic;
+    try{
+        if(Context.getType(typePathStr) != null){
+          type = TPath(bufferClassPath);
+        }
+    }catch(e : Dynamic){
+
+    }
+
     fields.push({
       name:"draw",
       pos:pos,
@@ -493,7 +505,7 @@ class PipelineMacro{
       kind:FFun({
         args : [{
           name:"buffer",
-          type : TPath(bufferClassPath)
+          type : type
         }],
         expr: macro {
           if(!buffer.uploaded){
