@@ -44,6 +44,10 @@ class PipelineExtension{
 		
 	var blendSource = macro $v{kha.graphics4.BlendingFactor.BlendOne};
 	var blendDestination = macro $v{kha.graphics4.BlendingFactor.BlendZero};
+
+    //TODO check defaults
+    var alphaBlendSource = macro $v{kha.graphics4.BlendingFactor.BlendOne};
+    var alphaBlendDestination = macro $v{kha.graphics4.BlendingFactor.BlendZero};
     
     if(conf != null){
         switch(conf.expr){
@@ -97,6 +101,8 @@ class PipelineExtension{
                                         switch(field.field){
                                             case "source": blendSource = field.expr;
                                             case "destination": blendDestination = field.expr;
+                                            case "alphaSource": alphaBlendSource = field.expr;
+                                            case "alphaDestination": alphaBlendDestination = field.expr;
                                             default: //Context.error("param not recognized in blend : " + field.field, pos);
                                         }
                                     }
@@ -124,6 +130,8 @@ class PipelineExtension{
     key += stencilWriteMask.toString();
     key += blendSource.toString();
     key += blendDestination.toString();
+    key += alphaBlendSource.toString();
+    key += alphaBlendDestination.toString();
     
     var newExpr = macro {
       $e{varExpr};
