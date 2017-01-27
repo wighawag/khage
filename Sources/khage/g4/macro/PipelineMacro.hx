@@ -440,8 +440,9 @@ class PipelineMacro{
           arguments.push({name:"mat", type: macro : kha.math.FastMatrix4});
           body = macro g.setMatrix($i{uniformLocationVariableName},mat);
         case "mat3":
-          arguments.push({name:"mat", type: macro : kha.math.FastMatrix3});
-          body = macro g.setMatrix3($i{uniformLocationVariableName},mat);
+          //TODO
+          // arguments.push({name:"mat", type: macro : kha.math.FastMatrix3});
+          // body = macro g.setMatrix3($i{uniformLocationVariableName},mat);
         case "sampler2D":
           arguments.push({name:"texture", type: macro : kha.Image});
           body = macro g.setTexture($i{uniformLocationVariableName},texture);
