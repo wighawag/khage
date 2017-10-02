@@ -12,18 +12,18 @@ class BufferBase{
 	public var uploaded(default,null) : Bool;
 
 	private var vertexData : kha.arrays.Float32Array;
-	private var indexData : Array<Int>; //should be Int16Array for webgl?
+	private var indexData :  kha.arrays.Uint32Array; //should be Int16Array for webgl?
 
 	inline private function lock(){
 		vertexData = vertexBuffer.lock();
-		indexData = indexBuffer.lock();
+		indexData = indexBuffer.lock(null,null);
 	}
 
 	inline private function unlock(){
 		vertexBuffer.unlock();
 		indexBuffer.unlock();
-		vertexData = null;
-		indexData = null;
+		// vertexData = null;
+		// indexData = null;
 	}
 
 	@:extern inline public function writeIndex(i : Int){
